@@ -7,7 +7,7 @@ ui <- fluidPage(
   ,fluidRow(column(3,textInput(inputId="val",label="Enter your codeforces handle")),column(4,actionButton(inputId = "click",label="enter",style = "margin-top:25px"))),
   tabsetPanel(tabPanel("Home",HTML('<center><img src="LOGO.gif"></center>')),tabPanel("Hacking",tags$h1("Top 5 hackers",style="text-align:center")
                ,dataTableOutput(outputId = "hackfreq"),plotOutput(outputId = "pie")),
-               tabPanel("Rating"),tabPanel("Blogs", tags$h2("Blog details of the corresponding user"), dataTableOutput(outputId = "BlogDetails"), actionButton(inputId = "Piechart",label="Pie chart",style = "margin-top:25px"), plotOutput(outputId = "piechart"), tags$h2("Ratingwise distribution of blogs"), plotOutput(outputId = "RatingBarplot")))
+               tabPanel("Rating", tags$h2("Rating Distribution of the user"), plotOutput(outputId = "Ratingplot"), textOutput(outputId = "MaxAndMinRating")),tabPanel("Blogs", tags$h2("Blog details of the corresponding user"), dataTableOutput(outputId = "BlogDetails"), actionButton(inputId = "Piechart",label="Pie chart",style = "margin-top:25px"), plotOutput(outputId = "piechart"), tags$h2("Ratingwise distribution of blogs"), plotOutput(outputId = "RatingBarplot")))
 )
 
 
@@ -25,7 +25,7 @@ server <- function(input, output) {
   commentData <- eventReactive(input$Piechart,{as.data.frame(blogIdData %>% filter(Author == input$val))})
   output$hackfreq <- renderDataTable({most_hacks()},
                                      options = list(searching = FALSE,filter="top", selection="multiple", escape=FALSE,info=FALSE,lengthChange=FALSE,columns=list(list(title="Hacked by"),list(title="Frequency"))))
-
+  ratingData <- eventReactive(input$click, {as.data.frame(RatingData %>% filter(User == input$val))})
   output$pie <- renderPlot({
     label <- c("Accepted","Hacked","Others (WA,TLE,RE)")
     x <- as.integer(submission_data()["Accepted"])
@@ -51,11 +51,15 @@ server <- function(input, output) {
   })
   output$BlogDetails <- renderDataTable({blogidData()}, options = list(info = FALSE, searching = FALSE))
   output$RatingBarplot <- renderPlot({ggplot(blogData, aes(Rating, BlogCount)) + geom_bar(stat = "identity", width = 100) + theme(axis.text = element_text(size=12, colour =  'black'))})
+  output$Ratingplot <- renderPlot({ggplot(ratingData(), aes(x = Rating)) + geom_density()})
+  output$MaxAndMinRating <- renderText(paste("Maximum rating of the user is", max(ratingData()$Rating), " and the minimum rating is ", min(ratingData()$Rating), sep = " "))
+  
 }
 
 HackData <- read.csv("Hacks.csv")
 SubmissionData <- read.csv("Submissions.csv")
 blogIdData <- read.csv("BlogId.csv")
 blogData <- read.csv("Blogs.csv")
+RatingData <- read.csv("Rating.csv")
 shinyApp(ui, server)
 
