@@ -1,0 +1,13 @@
+name: AnalyzeCF
+title: AnalyzeCF
+username:
+account: analyzecf
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4893213
+bundleId: 5148704
+url: https://analyzecf.shinyapps.io/AnalyzeCF/
+when: 1634532108.40592
+lastSyncTime: 1634532108.40592
+asMultiple: FALSE
+asStatic: FALSE
