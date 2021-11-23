@@ -4,14 +4,22 @@ library('shinydashboard')
 library(shinyWidgets)
 library(dplyr)
 library(ggplot2)
+library(plotrix)
 ui <- fluidPage(
   setBackgroundColor("#d9d9d9"),
+  tags$script(src="https://kit.fontawesome.com/66aa7c98b3.js",crossorigin="anonymous"),
   tags$style(HTML("
+    
     ul.nav.nav-tabs li {
         background-color: black !important;
     }     
+    .tabbable {
+       margin-bottom: 50px;
+    }
     .tabbable > .nav > li[class=active] > a {
            background-color: black;
+           color: #fcc;
+           border: #000;
     }
     #barplot {
       margin-top: 45px;
@@ -20,12 +28,52 @@ ui <- fluidPage(
       margin-top: 45px;
       font-size: 35px;
     }
+    
+        
+    .footer{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #263238;
+        text-align: center;
+        color: #f4f4f4;
+    }
+    
+    .icons{
+        padding-top: 0rem;
+        padding-bottom: 0rem;
+    }
+    
+    .icons a{
+        text-decoration: none;
+        font-size: 2rem;
+        margin: 0rem;
+        color: #f4f4f4;
+    }
+    
+    
+    @media (max-width: 500px){
+        html{
+            font-size: 50%;
+        }
+    }    
+    
+    @media(min-width: 501px) and (max-width: 768px){
+        html{
+        font-size: 50%;
+        }
+    }    
   ")),
   tags$h1("Analyze CF",style="text-align:center;")
   ,fluidRow(column(3,textInput(inputId="val",label="Enter your codeforces handle",placeholder = "eg. tourist")),column(4,actionButton(inputId = "click",label="enter",style = "margin-top:25px;background-color: #bfbbbb"))),
-  tabsetPanel(tabPanel("Home",HTML('<center><img src="LOGO.gif"></center>')),tabPanel("Hacking",tags$h1("Top 5 hackers",style="text-align:center")
-                                                                                      ,dataTableOutput(outputId = "hackfreq"),plotOutput(outputId = "pie")),
-              tabPanel("Rating",tags$h2("Rating Distribution of the user"), plotOutput(outputId = "Ratingplot"), textOutput(outputId = "MaxAndMinRating")),tabPanel("problems",plotOutput(outputId = "barplot"),textOutput(outputId = "text1")),tabPanel("Blogs", tags$h2("Blog details of the corresponding user"), dataTableOutput(outputId = "BlogDetails"), actionButton(inputId = "Piechart",label="Pie chart",style = "margin-top:25px"), plotOutput(outputId = "piechart"), tags$h2("Ratingwise distribution of blogs"), plotOutput(outputId = "RatingBarplot")))
+  tabsetPanel(tabPanel("Home",HTML('<center><img src="LOGO.gif"></center>')),
+              tabPanel("Hacking",tags$h1("Top 5 hackers",style="text-align:center"),dataTableOutput(outputId = "hackfreq"),plotOutput(outputId = "pie")),
+              tabPanel("Rating",tags$h2("Rating Distribution of the user"), plotOutput(outputId = "Ratingplot"), textOutput(outputId = "MaxAndMinRating")),
+              tabPanel("problems",plotOutput(outputId = "barplot"),textOutput(outputId = "text1")),
+              tabPanel("Blogs", tags$h2("Blog details of the corresponding user"), dataTableOutput(outputId = "BlogDetails"), actionButton(inputId = "Piechart",label="Pie chart",style = "margin-top:25px"), plotOutput(outputId = "piechart"), tags$h2("Ratingwise distribution of blogs"), plotOutput(outputId = "RatingBarplot"))
+              ),
+  tags$footer(class="footer",tags$div(class="icons",tags$a(href="https://github.com/VaibhaveS/AnalyzeCF",tags$i(class="fab fa-github")),tags$p(class="company-name","")))
 )
 
 
@@ -71,7 +119,7 @@ server <- function(input, output) {
     data <- c(x,y)
     print(data)
     piepercent<- round(100 * data/nrow(commentData()), 1)
-    pie(data,labels=piepercent,col=rainbow(length(data)),main="Submissions pie chart")
+    pie(data,labels=piepercent,col=rainbow(length(data)),main="blog comments distribution")
     legend("topright",label,cex=0.8,fill=rainbow(length(data)))
   })
   output$text1 <- renderText({
