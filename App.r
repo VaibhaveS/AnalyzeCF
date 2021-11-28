@@ -24,7 +24,7 @@ ui <- fluidPage(
     #barplot {
       margin-top: 45px;
     }
-    #text1 {
+    #text1, #PredictedRating, #MaxAndMinRating {
       margin-top: 45px;
       font-size: 35px;
     }
@@ -69,7 +69,7 @@ ui <- fluidPage(
   ,fluidRow(column(3,textInput(inputId="val",label="Enter your codeforces handle",placeholder = "eg. tourist")),column(4,actionButton(inputId = "click",label="enter",style = "margin-top:25px;background-color: #bfbbbb"))),
   tabsetPanel(tabPanel("Home",HTML('<center><img src="LOGO.gif"></center>')),
               tabPanel("Hacking",tags$h1("Top 5 hackers",style="text-align:center"),dataTableOutput(outputId = "hackfreq"),plotOutput(outputId = "pie")),
-              tabPanel("Rating",tags$h2("Rating Distribution of the user"), plotOutput(outputId = "Ratingplot"), textOutput(outputId = "MaxAndMinRating")),
+              tabPanel("Rating",tags$h2("Rating Distribution of the user"), plotOutput(outputId = "Ratingplot"), textOutput(outputId = "MaxAndMinRating"), textOutput(outputId = "PredictedRating")),
               tabPanel("problems",plotOutput(outputId = "barplot"),textOutput(outputId = "text1")),
               tabPanel("Blogs", tags$h2("Blog details of the corresponding user"), dataTableOutput(outputId = "BlogDetails"), actionButton(inputId = "Piechart",label="Pie chart",style = "margin-top:25px"), plotOutput(outputId = "piechart"), tags$h2("Ratingwise distribution of blogs"), plotOutput(outputId = "RatingBarplot"))
               ),
@@ -92,7 +92,7 @@ server <- function(input, output) {
     
   })
   ratingData <- eventReactive(input$click, {as.data.frame(RatingData %>% filter(User == input$val))})
-  
+  ratingPredictionData <- eventReactive(input$click, {as.data.frame(filter(RatingPredictionData, User == input$val))})
   blogidData <- eventReactive(input$click,{as.data.frame(blogIdData %>% filter(Author == input$val))})
   commentData <- eventReactive(input$Piechart,{as.data.frame(blogIdData %>% filter(Author == input$val))})
   output$hackfreq <- renderDataTable({most_hacks()},
@@ -153,7 +153,13 @@ server <- function(input, output) {
   output$RatingBarplot <- renderPlot({ggplot(blogData, aes(Rating, BlogCount)) + geom_bar(stat = "identity", width = 100) + theme(axis.text = element_text(size=12, colour =  'black'))})
   output$Ratingplot <- renderPlot({ggplot(ratingData(), aes(x = Rating)) + geom_density()})
   output$MaxAndMinRating <- renderText(paste("Maximum rating of the user is", max(ratingData()$Rating), " and the minimum rating is ", min(ratingData()$Rating), sep = " "))
-  
+  output$PredictedRating <- renderText({
+    model <- loess(RatingPredictionData$CurrRating ~ RatingPredictionData$CurrRating + RatingPredictionData$AvgRatingChange, data = RatingPredictionData)
+    res <- model %>% predict(ratingPredictionData())
+    usr <- RatingPredictionData$User
+    ind <- which(usr == input$val)
+    print(paste("The Predicted Rating of the user is: ", floor(res[ind])))
+  })
 }
 HackData <- read.csv("Hacks.csv")
 SubmissionData <- read.csv("Submissions.csv")
@@ -161,6 +167,7 @@ blogIdData <- read.csv("BlogId.csv")
 blogData <- read.csv("Blogs.csv")
 probsData <- read.csv("problems.csv")
 RatingData <- read.csv("Rating.csv")
+RatingPredictionData <- read.csv("Rating_Prediction.csv")
 
 View(probsData)
 shinyApp(ui, server)
