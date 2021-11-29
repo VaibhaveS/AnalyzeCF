@@ -15,4 +15,6 @@ Platform to analyze competitive programming profiles with smart prediction using
   <li> rating analysis</li>
   <li> Distribution of problem tags </li>
   <li> Blog details </li>
+  <li> Rating prediction </li>
+  <li> Followers prediction </li>
 <ul>
